@@ -345,7 +345,7 @@
    <widget class="QPushButton" name="pushButton_confirm">
     <property name="geometry">
      <rect>
-      <x>300</x>
+      <x>320</x>
       <y>250</y>
       <width>61</width>
       <height>31</height>

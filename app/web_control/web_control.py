@@ -387,6 +387,8 @@ class KikiDriver:
                 pass
     
         for product in products:
+            result = []  # 结果容器
+            scroll_position = 1000
             self.is_pdd_start_search = True
             if self.stop:
                 signal_main_ui.refresh_text_browser.emit("已停止")
@@ -408,10 +410,9 @@ class KikiDriver:
                             if driver.find_element_by_xpath('//*[@id="captcha-dialog"]/div[1]').is_displayed():
                                 signal_main_ui.refresh_text_browser.emit("请手动消除验证滑块")
                         except selenium.common.exceptions.NoSuchElementException:
-
+                            # 查出初始化
                             if self.is_pdd_start_search:
                                 signal_main_ui.refresh_text_browser.emit("正在查询: " + str(brand) + str(name))
-                                # 输入搜索
                                 try:
                                     search_input = driver.find_element_by_xpath('//*[@id="submit"]/input')
                                     if search_input.is_displayed():
@@ -420,48 +421,36 @@ class KikiDriver:
                                         driver.find_element_by_xpath('//*[@id="main"]/div/div[2]/div[3]').click()
                                         self.is_pdd_start_search = False
                                     else:
-                                        js = "var q=document.documentElement.scrollTop=0"
+                                        js = "var q=document.documentElement.scrollTop=" + str(scroll_position - 500)
                                         driver.execute_script(js)
                                 except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
                                     pass
                             else:
+                                # 获取查询数据
                                 time.sleep(2)
                                 try:
                                     no_goods = driver.find_element_by_xpath('//*[@id="main"]/div/div[2]/div/div/div[2]/div[1]/div/span')
                                     no_goods_tips = no_goods.text
                                     if "相关商品较少" in no_goods_tips:
                                         signal_main_ui.refresh_text_browser.emit("相关商品较少, 跳过查询")
-                                        continue
+                                        break
                                 except selenium.common.exceptions.NoSuchElementException:
                                     pass
                                 except selenium.common.exceptions.StaleElementReferenceException:
                                     pass
-                                scroll_position = 1000
-                                for i in range(10):
-                                    try:
-                                        if driver.find_element_by_xpath('//*[@id="captcha-dialog"]/div[1]').is_displayed():
-                                            pass
-                                        else:
-                                            pass
-                                    time.sleep(2)
-                                    js = "var q=document.documentElement.scrollTop=" + str(scroll_position)
-                                    driver.execute_script(js)
+                                time.sleep(2)
+                                js = "var q=document.documentElement.scrollTop=" + str(scroll_position)
+                                driver.execute_script(js)
+                                scroll_position += random.randint(800, 1200)
+                                try:
                                     _2olq_Qet_items = driver.find_elements_by_class_name('_2olq_Qet')
-                                    scroll_position += random.randint(800, 1200)
                                     if len(_2olq_Qet_items) >= 384:
-                                        break
-
-
-
-                                result = []  # 整理出我们关注的信息(ID,标题，链接，售价，销量和商家)
-                                while True:
-                                    _2olq_Qet_items = driver.find_elements_by_class_name('_2olq_Qet')
-                                    if _2olq_Qet_items:
                                         for index, _2olq_Qet in enumerate(_2olq_Qet_items):
                                             dict1 = dict.fromkeys(('id', 'title', 'link', 'price', 'sale', 'shoper'))
                                             try:
                                                 dict1['id'] = index + 1
-                                                dict1['title'] = _2olq_Qet.find_element_by_class_name('RHpIDHFA').text.replace('"', '').replace('\n', '')
+                                                dict1['title'] = _2olq_Qet.find_element_by_class_name('RHpIDHFA').text.replace('"', '').replace('\n',
+                                                                                                                                                '')
                                                 dict1['link'] = "NO DATA"
                                                 price_el = _2olq_Qet.find_element_by_class_name('_2TktAWlc').find_elements_by_xpath('span')
                                                 price_list = []
@@ -469,7 +458,8 @@ class KikiDriver:
                                                     for el in price_el:
                                                         price_list.append(el.text)
                                                 dict1['price'] = "".join(price_list) if price_list else "NO DATA"
-                                                dict1['sale'] = _2olq_Qet.find_element_by_class_name('_5x_0r9h0').find_element_by_tag_name('span').text
+                                                dict1['sale'] = _2olq_Qet.find_element_by_class_name('_5x_0r9h0').find_element_by_tag_name(
+                                                    'span').text
                                                 dict1['shoper'] = "NO DATA"
                                             except selenium.common.exceptions.NoSuchElementException as e:
                                                 print(e)
@@ -480,11 +470,10 @@ class KikiDriver:
                                             result.append(dict1)
                                         else:
                                             break
+                                except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
+                                    break
                                 if result:
                                     list_to_excel(deepcopy(result), str(brand + name), "拼多多_" + excel_name)
-
-                            else:
-                                pass
                             time.sleep(1)
 
     def get_am(self, products: list, target_count, excel_name):
