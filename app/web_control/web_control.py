@@ -422,14 +422,25 @@ class KikiDriver:
                                     print(e)
                                 except selenium.common.exceptions.StaleElementReferenceException as e:
                                     print(e)
+                                except selenium.common.exceptions.ElementClickInterceptedException as e:
+                                    print(e)
                                 try:
                                     # 输入 _1rjqjr6b
                                     search_input = driver.find_element_by_xpath('//*[@id="submit"]/input')
                                     if search_input.is_displayed():
                                         search_input.clear()
                                         search_input.send_keys(str(brand) + str(name))
-                                        driver.find_element_by_xpath('//*[@id="main"]/div[2]/div[1]/div/div[2]').click()
-                                        self.is_pdd_start_search = False
+                                        try:
+                                            driver.find_element_by_xpath('//*[@id="main"]/div[2]/div[1]/div/div[2]').click()
+                                            self.is_pdd_start_search = False
+                                        except selenium.common.exceptions.NoSuchElementException as e:
+                                            print(e)
+                                        try:
+                                            driver.find_element_by_class_name('_2wmqpCvm').click()
+                                            self.is_pdd_start_search = False
+                                        except selenium.common.exceptions.NoSuchElementException as e:
+                                            print(e)
+
                                     else:
                                         driver.execute_script(js)
                                 except selenium.common.exceptions.NoSuchElementException as e:
@@ -440,7 +451,7 @@ class KikiDriver:
                                     driver.execute_script(js)
                             else:
                                 # 获取查询数据
-                                time.sleep(2)
+                                time.sleep(1)
                                 try:
                                     no_goods = driver.find_element_by_xpath('//*[@id="main"]/div/div[2]/div/div/div[2]/div[1]/div/span')
                                     no_goods_tips = no_goods.text
@@ -455,7 +466,7 @@ class KikiDriver:
                                 driver.execute_script(js)
                                 signal_main_ui.refresh_text_browser.emit("正在翻页中...")
                                 scroll_times += 1
-                                scroll_position += random.randint(1600, 2400)
+                                scroll_position += random.randint(1000, 1200)
                                 try:
                                     _2olq_Qet_items = driver.find_elements_by_class_name('_2olq_Qet')
                                 except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
