@@ -402,7 +402,6 @@ class KikiDriver:
                     time.sleep(1)
                     signal_main_ui.refresh_text_browser.emit("暂停中")
                 else:
-
                     brand = product[0] if product[0] else ""
                     name = product[1] if product[1] else ""
                     # size = product[2] if product[2] else ""
@@ -414,9 +413,17 @@ class KikiDriver:
                         except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
                             # 查出初始化
                             if self.is_pdd_start_search:
+                                js = "var q=document.documentElement.scrollTop=" + str(scroll_position - 500)
                                 signal_main_ui.refresh_text_browser.emit("正在查询: " + str(brand) + str(name))
                                 try:
-                                    # 输入
+                                    driver.find_element_by_class_name('_1_lwtoht').click()
+                                    time.sleep(1)
+                                except selenium.common.exceptions.NoSuchElementException as e:
+                                    print(e)
+                                except selenium.common.exceptions.StaleElementReferenceException as e:
+                                    print(e)
+                                try:
+                                    # 输入 _1rjqjr6b
                                     search_input = driver.find_element_by_xpath('//*[@id="submit"]/input')
                                     if search_input.is_displayed():
                                         search_input.clear()
@@ -424,10 +431,13 @@ class KikiDriver:
                                         driver.find_element_by_xpath('//*[@id="main"]/div[2]/div[1]/div/div[2]').click()
                                         self.is_pdd_start_search = False
                                     else:
-                                        js = "var q=document.documentElement.scrollTop=" + str(scroll_position - 500)
                                         driver.execute_script(js)
-                                except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
-                                    pass
+                                except selenium.common.exceptions.NoSuchElementException as e:
+                                    print(e)
+                                    driver.execute_script(js)
+                                except selenium.common.exceptions.StaleElementReferenceException as e:
+                                    print(e)
+                                    driver.execute_script(js)
                             else:
                                 # 获取查询数据
                                 time.sleep(2)
@@ -448,36 +458,39 @@ class KikiDriver:
                                 scroll_position += random.randint(1600, 2400)
                                 try:
                                     _2olq_Qet_items = driver.find_elements_by_class_name('_2olq_Qet')
-                                    if len(_2olq_Qet_items) >= 384 or scroll_times >= 10:
-                                        for index, _2olq_Qet in enumerate(_2olq_Qet_items):
-                                            dict1 = dict.fromkeys(('id', 'title', 'link', 'price', 'sale', 'shoper'))
-                                            try:
-                                                dict1['id'] = index + 1
-                                                dict1['title'] = _2olq_Qet.find_element_by_class_name('RHpIDHFA').text.replace('"', '').replace('\n',
-                                                                                                                                                '')
-                                                dict1['link'] = "NO DATA"
-                                                price_el = _2olq_Qet.find_element_by_class_name('_2TktAWlc').find_elements_by_xpath('span')
-                                                price_list = []
-                                                if price_el:
-                                                    for el in price_el:
-                                                        price_list.append(el.text)
-                                                dict1['price'] = "".join(price_list) if price_list else "NO DATA"
-                                                dict1['sale'] = _2olq_Qet.find_element_by_class_name('_5x_0r9h0').find_element_by_tag_name(
-                                                    'span').text
-                                                dict1['shoper'] = "NO DATA"
-                                            except selenium.common.exceptions.NoSuchElementException as e:
-                                                print(e)
-                                                continue
-                                            except selenium.common.exceptions.StaleElementReferenceException as e:
-                                                print(e)
-                                                continue
-                                            result.append(dict1)
-                                        else:
-                                            break
                                 except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
-                                    break
-                                if result:
-                                    list_to_excel(deepcopy(result), str(brand + name), "拼多多_" + excel_name)
+                                    _2olq_Qet_items = []
+                                if len(_2olq_Qet_items) >= 384 or scroll_times >= 10:
+                                    for index, _2olq_Qet in enumerate(_2olq_Qet_items):
+                                        dict1 = dict.fromkeys(('id', 'title', 'link', 'price', 'sale', 'shoper'))
+                                        dict1['id'] = index + 1
+                                        try:
+                                            title = _2olq_Qet.find_element_by_class_name('RHpIDHFA').text.replace('"', '').replace('\n', '')
+                                            dict1['title'] = title
+                                        except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
+                                            dict1['title'] = "NO DATA"
+                                        dict1['link'] = "NO DATA"
+                                        try:
+                                            price_el = _2olq_Qet.find_element_by_class_name('_2TktAWlc').find_elements_by_xpath('span')
+                                            price_list = []
+                                            if price_el:
+                                                for el in price_el:
+                                                    price_list.append(el.text)
+                                                dict1['price'] = "".join(price_list) if price_list else "NO DATA"
+                                        except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
+                                            dict1['price'] = "NO DATA"
+                                        try:
+                                            dict1['sale'] = _2olq_Qet.find_element_by_class_name('_5x_0r9h0').find_element_by_tag_name('span').text
+
+                                        except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
+                                            dict1['sale'] = "NO DATA"
+                                            dict1['shoper'] = "NO DATA"
+                                        result.append(dict1)
+                                    else:
+                                        if result:
+                                            print(result)
+                                            list_to_excel(deepcopy(result), str(brand + name), "拼多多_" + excel_name)
+                                        break
 
     def get_am(self, products: list, target_count, excel_name):
         """
