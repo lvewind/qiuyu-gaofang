@@ -389,6 +389,7 @@ class KikiDriver:
         for product in products:
             result = []  # 结果容器
             scroll_position = 1000
+            scroll_times = 0
             self.is_pdd_start_search = True
             if self.stop:
                 signal_main_ui.refresh_text_browser.emit("已停止")
@@ -409,16 +410,18 @@ class KikiDriver:
                         try:
                             if driver.find_element_by_xpath('//*[@id="captcha-dialog"]/div[1]').is_displayed():
                                 signal_main_ui.refresh_text_browser.emit("请手动消除验证滑块")
-                        except selenium.common.exceptions.NoSuchElementException:
+                                time.sleep(1)
+                        except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
                             # 查出初始化
                             if self.is_pdd_start_search:
                                 signal_main_ui.refresh_text_browser.emit("正在查询: " + str(brand) + str(name))
                                 try:
+                                    # 输入
                                     search_input = driver.find_element_by_xpath('//*[@id="submit"]/input')
                                     if search_input.is_displayed():
                                         search_input.clear()
                                         search_input.send_keys(str(brand) + str(name))
-                                        driver.find_element_by_xpath('//*[@id="main"]/div/div[2]/div[3]').click()
+                                        driver.find_element_by_xpath('//*[@id="main"]/div[2]/div[1]/div/div[2]').click()
                                         self.is_pdd_start_search = False
                                     else:
                                         js = "var q=document.documentElement.scrollTop=" + str(scroll_position - 500)
@@ -438,13 +441,14 @@ class KikiDriver:
                                     pass
                                 except selenium.common.exceptions.StaleElementReferenceException:
                                     pass
-                                time.sleep(2)
                                 js = "var q=document.documentElement.scrollTop=" + str(scroll_position)
                                 driver.execute_script(js)
-                                scroll_position += random.randint(800, 1200)
+                                signal_main_ui.refresh_text_browser.emit("正在翻页中...")
+                                scroll_times += 1
+                                scroll_position += random.randint(1600, 2400)
                                 try:
                                     _2olq_Qet_items = driver.find_elements_by_class_name('_2olq_Qet')
-                                    if len(_2olq_Qet_items) >= 384:
+                                    if len(_2olq_Qet_items) >= 384 or scroll_times >= 10:
                                         for index, _2olq_Qet in enumerate(_2olq_Qet_items):
                                             dict1 = dict.fromkeys(('id', 'title', 'link', 'price', 'sale', 'shoper'))
                                             try:
@@ -474,7 +478,6 @@ class KikiDriver:
                                     break
                                 if result:
                                     list_to_excel(deepcopy(result), str(brand + name), "拼多多_" + excel_name)
-                            time.sleep(1)
 
     def get_am(self, products: list, target_count, excel_name):
         """
