@@ -5,7 +5,7 @@ block_cipher = pyi_crypto.PyiBlockCipher(key='15rMJf3kqTFtyPiw')
 
 
 a = Analysis(['launch.py'],
-             pathex=['E:\\GAOFANG'],
+             pathex=['F:\\Project\\Python\\GAOFANG'],
              binaries=[],
              datas=[],
              hiddenimports=[],

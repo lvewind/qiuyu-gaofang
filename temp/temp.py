@@ -1,5 +1,1 @@
-"/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[5]"
-"/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[5]/div/span/div/div/div[2]/div[1]/h2/a/span"
-"/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[5]/div/span/div/div/div[2]/div[1]/h2/a"
-"/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[5]/div/span/div/div/div[2]/div[2]/div/span[2]/a/span"
-"/html/body/div[1]/div[2]/div[1]/div[1]/div/span[3]/div[2]/div[5]/div/span/div/div/div[2]/div[3]/div[1]/a/span[1]/span[2]/span[2]"
+document.querySelector("#search > div.s-desktop-width-max.s-desktop-content.s-opposite-dir.sg-row > div.s-matching-dir.sg-col-16-of-20.sg-col.sg-col-8-of-12.sg-col-12-of-16 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(1)")

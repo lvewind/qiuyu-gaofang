@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 import selenium.common
 import time
 import os
@@ -10,6 +11,7 @@ import re
 import json
 from copy import deepcopy
 import random
+from pyquery import PyQuery as pq
 
 
 class KikiDriver:
@@ -23,7 +25,7 @@ class KikiDriver:
         self.is_pdd_login = False
         self.is_pdd_start_search = False
         self.is_am_login = False
-        self.is_am_search = False
+        self.is_am_search_input = False
 
     def run_get(self, excel_input_path: str, platform: str, target_count: int):
         excel_name = time.strftime("%Y%m%d%H%M%S", time.localtime())
@@ -515,103 +517,110 @@ class KikiDriver:
         """
         driver = webdriver.Chrome(self.driver_path)
         signal_main_ui.refresh_text_browser.emit("打开亚马逊")
-        url = "https://www.amazon.com/"
+        url = "https://www.amazon.com/ref=nav_logo?language=en_US"
         driver.get(url)
         self.is_am_login = False
 
-        while True:
-            if not self.is_am_login:
-                pass
+        for product in products:
+            self.is_am_search_input = True
+            index = 1
+            if self.stop:
+                signal_main_ui.refresh_text_browser.emit("已停止")
+                break
             else:
-                for product in products:
-                    result = []  # 结果容器
-                    scroll_position = 1000
-                    scroll_times = 0
-                    self.is_am_search = True
-                    if self.stop:
-                        signal_main_ui.refresh_text_browser.emit("已停止")
-                        break
+                result_count = 0
+                result_list = []  # 整理出我们关注的信息(ID,标题，链接，售价，销量和商家)
+                brand = product[0] if product[0] else ""
+                name = product[1] if product[1] else ""
+                # size = product[2] if product[2] else ""
+                if brand or name:
                     while True:
-                        if self.pause:
-                            if self.stop:
-                                signal_main_ui.refresh_text_browser.emit("已停止")
-                                break
-                            time.sleep(1)
-                            signal_main_ui.refresh_text_browser.emit("暂停中")
+                        if self.is_am_search_input:
+                            signal_main_ui.refresh_text_browser.emit("正在查询: " + str(brand) + str(name))
+                            try:
+                                input_el = driver.find_element(By.ID, 'twotabsearchtextbox')
+                                if input_el.is_displayed():
+                                    input_el.clear()
+                                    input_el.send_keys(brand + name)
+                                search_button = driver.find_element(By.ID, 'nav-search-submit-button')
+                                if search_button.is_displayed():
+                                    search_button.click()
+                                    self.is_am_search_input = False
+                            except selenium.common.exceptions.NoSuchElementException as e:
+                                print(e)
+                            except selenium.common.exceptions.StaleElementReferenceException as e:
+                                print(e)
+                            except selenium.common.exceptions.ElementClickInterceptedException as e:
+                                print(e)
                         else:
-                            brand = product[0] if product[0] else ""
-                            name = product[1] if product[1] else ""
-                            # size = product[2] if product[2] else ""
-                            if brand or name:
-                                if not self.is_am_search:
-                                    signal_main_ui.refresh_text_browser.emit("正在查询: " + str(brand) + str(name))
+                            time.sleep(2)
+                            js = "var q=document.documentElement.scrollTop=9200"
+                            driver.execute_script(js)
+                            if self.pause:
+                                if self.stop:
+                                    signal_main_ui.refresh_text_browser.emit("已停止")
+                                    break
+                                time.sleep(1)
+                                signal_main_ui.refresh_text_browser.emit("暂停中")
+                            if result_count >= target_count:
+                                break
+                            # try:
+                            #     result_items = driver.find_elements(By.CLASS_NAME, 's-result-item')
+                            #     print(result_items)
+                            # except selenium.common.exceptions.NoSuchElementException as e:
+                            #     print(e)
+                            #     result_items = []
+                            # except selenium.common.exceptions.StaleElementReferenceException as e:
+                            #     print(e)
+                            #     result_items = []
+                            html = pq(driver.page_source)
+
+                            result_items = html("[data-asin]").items()
+                            if result_items:
+                                for item in result_items:
+                                    dict1 = dict.fromkeys(('id', 'title', 'link', 'price', 'sale', 'shoper'))
+                                    dict1['id'] = index
+                                    index = index + 1
                                     try:
-                                        input_el = driver.find_element_by_id('twotabsearchtextbox')
-                                        if input_el.is_displayed():
-                                            input_el.clear()
-                                            input_el.send_keys(brand + name)
-                                        search_button = driver.find_element_by_id('nav-search-submit-button')
-                                        if search_button.is_displayed():
-                                            search_button.click()
-                                            self.is_am_search = False
-                                        time.sleep(1)
-                                    except selenium.common.exceptions.NoSuchElementException as e:
+                                        dict1['title'] = item("h2.a-size-mini > a.a-link-normal > span.a-text-normal")[0].text
+                                    except IndexError as e:
                                         print(e)
-                                    except selenium.common.exceptions.StaleElementReferenceException as e:
+                                    dict1['link'] = "NO DATA"
+                                    try:
+                                        dict1['price'] = item("div.a-row > a > span > span > span.a-price-whole ")[0].text
+                                    except IndexError as e:
                                         print(e)
-                                    except selenium.common.exceptions.ElementClickInterceptedException as e:
+                                    try:
+                                        dict1['sale'] = item("div > span > a > span.a-size-base")[0].text
+                                    except IndexError as e:
                                         print(e)
+                                    dict1['shoper'] = "NO DATA"
+                                    print(dict1)
+                                    result_count += 1
+                                    result_list.append(dict1)
                                 else:
-                                    time.sleep(2)
-                                    result_count = 0
-                                    result = []  # 整理出我们关注的信息(ID,标题，链接，售价，销量和商家)
-                                    while True:
-                                        if result_count >= target_count:
+                                    try:
+                                        next_page = driver.find_element(By.CSS_SELECTOR, 'li.a-last')
+                                        if next_page.is_displayed():
+                                            next_status = next_page.get_attribute('class')
+                                            if "a-disabled" in next_status:
+                                                break
+                                            else:
+                                                next_page.click()
+                                                signal_main_ui.refresh_text_browser.emit("下一页")
+                                            time.sleep(1)
+                                        else:
                                             break
-                                        try:
-                                            result_container = driver.find_element_by_xpath('//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]')
-                                            result_items = result_container.find_elements_by_xpath('/div')
-                                            if result_items:
-                                                for result in result_items:
-                                                    try:
-                                                        dict1 = dict.fromkeys(('id', 'title', 'link', 'price', 'sale', 'shoper'))
-                                                        dict1['id'] = result.get_attribute('data-asin')
-                                                        dict1['title'] = result.find_element_by_xpath('/div/span/div/div/div[2]/div[1]/h2/a/span').text
-                                                        dict1['link'] = result.find_element_by_xpath('/div/span/div/div/div[2]/div[1]/h2/a').get_attribute('href')
-                                                        dict1['price'] = result.find_element_by_xpath('/div/span/div/div/div[2]/div[3]/div[1]/a/span[1]/span[2]/span[2]').text
-                                                        dict1['sale'] = result.find_element_by_xpath('/div/span/div/div/div[2]/div[2]/div/span[2]/a/span').text
-                                                        dict1['shoper'] = "NO DATA"
-                                                    except selenium.common.exceptions.NoSuchElementException:
-                                                        continue
-                                                    except selenium.common.exceptions.StaleElementReferenceException:
-                                                        continue
-                                                    result_count += 1
-                                                    result.append(dict1)
-                                                else:
-                                                    try:
-                                                        next_page = driver.find_element_by_xpath('//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[64]/span/div/div/ul/li[7]')
-                                                        if next_page.is_displayed():
-                                                            next_status = next_page.get_attribute('class')
-                                                            if "a-disabled" in next_status:
-                                                                break
-                                                            else:
-                                                                next_page.click()
-                                                                signal_main_ui.refresh_text_browser.emit("下一页")
-                                                            time.sleep(1)
-                                                        else:
-                                                            break
-                                                    except selenium.common.exceptions.NoSuchElementException:
-                                                        break
-                                                    except selenium.common.exceptions.StaleElementReferenceException:
-                                                        break
-                                        except selenium.common.exceptions.NoSuchElementException as e:
-                                            print(e)
-                                        except selenium.common.exceptions.StaleElementReferenceException as e:
-                                            print(e)
-                                        except selenium.common.exceptions.ElementClickInterceptedException as e:
-                                            print(e)
-                                    if result:
-                                        list_to_excel(deepcopy(result), str(brand + name), "亚马逊_" + excel_name)
+                                    except selenium.common.exceptions.NoSuchElementException:
+                                        break
+                                    except selenium.common.exceptions.StaleElementReferenceException:
+                                        break
+                            else:
+                                break
+
+                    if result_list:
+                        list_to_excel(deepcopy(result_list), str(name)[0: 18], "亚马逊_" + excel_name)
+
 
     def get_wd(self, products: list, target_count, excel_name):
         """

@@ -10,6 +10,7 @@ pywin32 = "==228"
 pyqt5 = "*"
 pyinstaller = "*"
 tinyaes = "*"
+pyquery = "*"
 
 [dev-packages]
 
