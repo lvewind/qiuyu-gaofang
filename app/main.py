@@ -19,7 +19,7 @@ class Kiki(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushButton_stop.clicked.connect(self.stop_get)
         self.pushButton_pause.clicked.connect(self.pause_get)
         self.pushButton_continue.clicked.connect(self.continue_get)
-        self.pushButton_confirm.clicked.connect(self.set_pdd_login_true)
+        self.pushButton_confirm.clicked.connect(self.set_login_true)
         signal_main_ui.refresh_text_browser.connect(self.display_info)
 
     def select_excel(self):
@@ -65,8 +65,9 @@ class Kiki(QtWidgets.QMainWindow, Ui_MainWindow):
     def continue_get(self):
         self.kiki.pause = False
 
-    def set_pdd_login_true(self):
+    def set_login_true(self):
         self.kiki.is_pdd_login = True
+        self.kiki.is_am_login = True
 
     def display_info(self, info):
         self.textBrowser.append(info)
