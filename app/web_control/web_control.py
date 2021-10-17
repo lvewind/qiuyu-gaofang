@@ -471,7 +471,7 @@ class KikiDriver:
                                     _2olq_Qet_items = driver.find_elements_by_class_name('_2olq_Qet')
                                 except selenium.common.exceptions.NoSuchElementException or selenium.common.exceptions.StaleElementReferenceException:
                                     _2olq_Qet_items = []
-                                if len(_2olq_Qet_items) >= 384 or scroll_times >= 10:
+                                if len(_2olq_Qet_items) >= 384 or scroll_times >= 20:
                                     for index, _2olq_Qet in enumerate(_2olq_Qet_items):
                                         dict1 = dict.fromkeys(('id', 'title', 'link', 'price', 'sale', 'shoper'))
                                         dict1['id'] = index + 1
