@@ -536,12 +536,12 @@ class KikiDriver:
                 if brand or name:
                     while True:
                         if self.is_am_search_input:
-                            signal_main_ui.refresh_text_browser.emit("正在查询: " + str(brand) + str(name))
+                            signal_main_ui.refresh_text_browser.emit("正在查询: " + str(brand) + " " + str(name))
                             try:
                                 input_el = driver.find_element(By.ID, 'twotabsearchtextbox')
                                 if input_el.is_displayed():
                                     input_el.clear()
-                                    input_el.send_keys(brand + name)
+                                    input_el.send_keys(brand + " " + name)
                                 search_button = driver.find_element(By.ID, 'nav-search-submit-button')
                                 if search_button.is_displayed():
                                     search_button.click()
@@ -620,7 +620,6 @@ class KikiDriver:
 
                     if result_list:
                         list_to_excel(deepcopy(result_list), str(name)[0: 18], "亚马逊_" + excel_name)
-
 
     def get_wd(self, products: list, target_count, excel_name):
         """
