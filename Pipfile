@@ -6,8 +6,8 @@ name = "pypi"
 [packages]
 selenium = "*"
 xlwings = "*"
-pywin32 = "==228"
-pyqt5 = "*"
+pywin32 = "*"
+pyside6 = "*"
 pyinstaller = "*"
 tinyaes = "*"
 pyquery = "*"
@@ -15,4 +15,4 @@ pyquery = "*"
 [dev-packages]
 
 [requires]
-python_version = "3.8"
+python_version = "3.10"

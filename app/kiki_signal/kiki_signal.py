@@ -1,8 +1,8 @@
-from PyQt5.QtCore import QObject, pyqtSignal
+from PySide6.QtCore import QObject, Signal
 
 
 class SignalMainUI(QObject):
-    refresh_text_browser = pyqtSignal(str)
+    refresh_text_browser = Signal(str)
 
 
 signal_main_ui = SignalMainUI()

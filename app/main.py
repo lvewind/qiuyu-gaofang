@@ -1,5 +1,5 @@
 from app.ui.main import Ui_MainWindow
-from PyQt5 import QtWidgets
+from PySide6 import QtWidgets
 from app.web_control.web_control import KikiDriver
 from app.kiki_signal.kiki_signal import signal_main_ui
 from threading import Thread
